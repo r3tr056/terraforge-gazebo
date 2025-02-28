@@ -1,0 +1,117 @@
+<?xml version='1.0'?>
+<sdf version='1.7'>
+  <world name='generated_world'>
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <physics type='ode'>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <gravity>0 0 -9.8</gravity>
+    </physics>
+
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1000 1000</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsque>
+                <ode/>
+              </torsque>
+            </friction>
+            <bounce/>
+            <contact>
+              <ode/>
+            </contact>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1000 1000</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Terrain Heightmap -->
+    {% if heightmap_path %}
+    <model name='terrain'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <heightmap>
+              <uri>file://{{ heightmap_path }}</uri>
+              <size>1000 1000 200</size> <!-- Adjust size and height as needed -->
+              <pos>0 0 0</pos>
+            </heightmap>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <heightmap>
+              <uri>file://{{ heightmap_path }}</uri>
+              <size>1000 1000 200</size> <!-- Adjust size and height as needed, same as collision -->
+              <pos>0 0 0</pos>
+            </heightmap>
+          </geometry>
+          {% if texture_path %}
+          <material>
+            <script>
+              <uri>__materials__/scripts/gazebo.material</uri>
+              <name>Gazebo/SatelliteTexture</name>
+            </script>
+          </material>
+          {% endif %}
+        </visual>
+      </link>
+      <pose>0 0 0 0 0 0</pose> <!-- Terrain pose, adjust if needed -->
+    </model>
+    {% endif %}
+
+    <!-- Building Models -->
+    {% for building_model_path in building_model_paths %}
+    <include filename='{{ building_model_path }}'>
+      <pose>{% if building_poses and loop.index0 < building_poses|length %}{{ building_poses[loop.index0][0] }} {{ building_poses[loop.index0][1] }} 0 0 0 0{% else %}0 0 0 0 0 0{% endif %}</pose>
+    </include>
+    {% endfor %}
+
+  </world>
+</sdf>
